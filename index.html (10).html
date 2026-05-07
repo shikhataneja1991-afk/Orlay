@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orlay Pay — Continuità di vendita per eventi live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue: #29ABE2;
+  --blue-dark: #1a8fc2;
+  --ink: #0e1117;
+  --slate: #2e3a47;
+  --muted: #6b7885;
+  --border: #e2e7ec;
+  --surface: #f4f7fa;
+  --white: #ffffff;
+  --font-display: 'Inter', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+/* ── CUSTOM CURSOR ── */
+* { cursor: none !important; }
+#cursor {
+  position: fixed; width: 10px; height: 10px;
+  background: var(--blue); border-radius: 50%;
+  pointer-events: none; z-index: 99999;
+  transform: translate(-50%,-50%);
+  transition: width .2s, height .2s, opacity .2s, background .2s;
+}
+#cursor-ring {
+  position: fixed; width: 34px; height: 34px;
+  border: 1.5px solid rgba(41,171,226,.55); border-radius: 50%;
+  pointer-events: none; z-index: 99998;
+  transform: translate(-50%,-50%);
+  transition: width .35s cubic-bezier(.23,1,.32,1), height .35s cubic-bezier(.23,1,.32,1), border-color .2s;
+}
+body.chov #cursor { width: 6px; height: 6px; background: #fff; }
+body.chov #cursor-ring { width: 50px; height: 50px; border-color: rgba(41,171,226,.9); }
+body.cclk #cursor { width: 5px; height: 5px; }
+body.cclk #cursor-ring { width: 26px; height: 26px; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--white); color: var(--ink);
+  overflow-x: hidden; -webkit-font-smoothing: antialiased;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  padding: 0 48px; height: 68px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(255,255,255,.9); backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; }
+.nav-logo svg { width: 32px; height: 32px; }
+.nav-wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; letter-spacing: -.02em; color: var(--ink); }
+.nav-wordmark span { display: inline-block; background: var(--blue); color: #fff; font-size: .65em; font-weight: 700; padding: 2px 7px 2px 6px; border-radius: 3px; margin-left: 2px; font-style: italic; vertical-align: middle; position: relative; top: -1px; }
+.nav-cta { background: var(--blue); color: #fff; font-family: var(--font-display); font-weight: 700; font-size: .85rem; padding: 10px 22px; border: none; border-radius: 6px; text-decoration: none; transition: background .2s, transform .15s; }
+.nav-cta:hover { background: var(--blue-dark); transform: translateY(-1px); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh; padding: 140px 48px 80px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+  background: var(--ink); position: relative; overflow: hidden;
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(41,171,226,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(41,171,226,.055) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridMove 20s linear infinite; pointer-events: none;
+}
+@keyframes gridMove { to { background-position: 60px 60px; } }
+.hero::before {
+  content: ''; position: absolute; top: -200px; right: -200px; width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(41,171,226,.2) 0%, transparent 65%);
+  pointer-events: none; z-index: 1; animation: breathe 6s ease-in-out infinite;
+}
+.hero::after {
+  content: ''; position: absolute; bottom: -100px; left: 20%; width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(41,171,226,.08) 0%, transparent 65%);
+  pointer-events: none; z-index: 1; animation: breathe 8s ease-in-out infinite reverse;
+}
+@keyframes breathe { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.15);opacity:.7} }
+.hero-content { position: relative; z-index: 2; }
+.hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: .78rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--blue); margin-bottom: 28px; }
+.hero-eyebrow::before { content: ''; display: block; width: 28px; height: 2px; background: var(--blue); border-radius: 2px; }
+.hero h1 { font-family: var(--font-display); font-size: clamp(2.6rem,4.5vw,3.8rem); font-weight: 800; line-height: 1.08; letter-spacing: -.03em; color: #fff; margin-bottom: 28px; }
+.hero h1 em { font-style: normal; color: var(--blue); }
+.hero-body { font-size: 1.05rem; line-height: 1.7; color: rgba(255,255,255,.65); max-width: 460px; margin-bottom: 40px; }
+.hero-actions { display: flex; flex-direction: column; gap: 14px; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--blue); color: #fff; font-family: var(--font-display); font-weight: 700; font-size: 1rem;
+  padding: 16px 32px; border: none; border-radius: 8px; text-decoration: none; width: fit-content;
+  transition: background .2s, transform .15s, box-shadow .2s; box-shadow: 0 4px 20px rgba(41,171,226,.4);
+  position: relative; overflow: hidden;
+}
+.btn-primary::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg,rgba(255,255,255,.15),transparent 60%); opacity: 0; transition: opacity .2s; }
+.btn-primary:hover { background: var(--blue-dark); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(41,171,226,.55); }
+.btn-primary:hover::after { opacity: 1; }
+.btn-primary svg { width: 18px; height: 18px; }
+.hero-micro { font-size: .78rem; color: rgba(255,255,255,.35); }
+.hero-micro strong { color: rgba(255,255,255,.55); font-weight: 500; }
+
+/* ── DASHBOARD ── */
+.hero-visual { position: relative; z-index: 2; }
+.dashboard-mockup {
+  background: #12181f; border: 1px solid rgba(255,255,255,.1); border-radius: 16px; overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(41,171,226,.12), 0 32px 80px rgba(0,0,0,.7);
+  animation: floatUp .8s ease-out forwards; opacity: 0; transform: translateY(30px);
+  position: relative;
+}
+/* scanline */
+.dashboard-mockup::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 10;
+  background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(41,171,226,.012) 3px,rgba(41,171,226,.012) 4px);
+}
+/* animated glow border */
+.db-glow {
+  position: absolute; inset: -2px; border-radius: 18px; pointer-events: none; z-index: 0;
+  background: conic-gradient(from var(--angle, 0deg), transparent 20%, rgba(41,171,226,.6) 40%, transparent 60%);
+  animation: spinBorder 4s linear infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude; padding: 1.5px;
+}
+@keyframes spinBorder {
+  to { --angle: 360deg; }
+}
+@property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+@keyframes floatUp { to { opacity: 1; transform: translateY(0); } }
+
+.mock-topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #0c1016; border-bottom: 1px solid rgba(255,255,255,.06); }
+.mock-logo-sm { font-family: var(--font-display); font-weight: 800; font-size: .8rem; color: #fff; }
+.mock-logo-sm span { background: var(--blue); font-size: .7em; padding: 1px 5px; border-radius: 2px; font-style: italic; margin-left: 2px; }
+.mock-badge { display: flex; align-items: center; gap: 6px; font-size: .7rem; color: #4ade80; font-weight: 500; }
+.mock-badge::before { content: ''; width: 6px; height: 6px; background: #4ade80; border-radius: 50%; animation: liveDot 1.4s infinite; }
+@keyframes liveDot { 0%,100%{box-shadow:0 0 3px #4ade80}50%{box-shadow:0 0 12px #4ade80} }
+.mock-body { padding: 20px; }
+.mock-title { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.mock-subtitle { font-size: .7rem; color: rgba(255,255,255,.4); margin-bottom: 16px; }
+.mock-kpis { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+.mock-kpi {
+  background: #1a2230; border: 1px solid rgba(255,255,255,.05); border-radius: 10px; padding: 12px;
+  animation: kpiGlow 4s ease-in-out infinite;
+}
+.mock-kpi:nth-child(2){animation-delay:.8s} .mock-kpi:nth-child(3){animation-delay:1.6s} .mock-kpi:nth-child(4){animation-delay:2.4s}
+@keyframes kpiGlow { 0%,100%{border-color:rgba(255,255,255,.05)} 50%{border-color:rgba(41,171,226,.22)} }
+.mock-kpi-label { font-size: .62rem; color: rgba(255,255,255,.4); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em; }
+.mock-kpi-val { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: #fff; line-height: 1; margin-bottom: 8px; }
+.mock-kpi-val.bl { color: var(--blue); }
+.mock-live { display: inline-flex; align-items: center; gap: 4px; background: rgba(41,171,226,.15); border: 1px solid rgba(41,171,226,.3); color: var(--blue); font-size: .58rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; float: right; margin-top: -22px; }
+.mock-live::before { content: ''; width: 5px; height: 5px; background: var(--blue); border-radius: 50%; animation: p 1.5s infinite; }
+@keyframes p { 0%,100%{opacity:1}50%{opacity:.3} }
+.spark { height: 24px; }
+.spark svg { width: 100%; height: 100%; }
+.spark-path { stroke-dasharray: 220; stroke-dashoffset: 220; animation: draw 2.2s ease-out forwards; }
+.sp2{animation-delay:.4s} .sp3{animation-delay:.8s} .sp4{animation-delay:1.2s}
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.mock-chart { background: #1a2230; border: 1px solid rgba(255,255,255,.05); border-radius: 10px; padding: 14px; }
+.mock-chart-lbl { font-size: .65rem; color: rgba(255,255,255,.4); margin-bottom: 10px; font-weight: 500; }
+.mock-chart-area { height: 60px; }
+.mock-chart-area svg { width: 100%; height: 100%; }
+
+/* ── COMMON SECTION ── */
+.section-header { max-width: 720px; margin-bottom: 64px; }
+.eyebrow { font-size: .72rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--blue); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.eyebrow::before { content: ''; display: block; width: 20px; height: 2px; background: var(--blue); border-radius: 2px; }
+.section-title { font-family: var(--font-display); font-size: clamp(2rem,3.5vw,2.9rem); font-weight: 800; line-height: 1.12; letter-spacing: -.03em; color: var(--ink); margin-bottom: 20px; }
+.section-body { font-size: 1.05rem; line-height: 1.7; color: var(--muted); max-width: 580px; }
+
+/* ── PROBLEM ── */
+.section-problem { padding: 120px 48px; background: var(--surface); position: relative; overflow: hidden; }
+.section-problem::before { content: ''; position: absolute; top: -200px; right: -150px; width: 500px; height: 500px; background: radial-gradient(circle,rgba(41,171,226,.07),transparent 65%); pointer-events: none; }
+.problem-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+.problem-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 40px 32px;
+  position: relative; overflow: hidden;
+  transition: transform .35s cubic-bezier(.23,1,.32,1), box-shadow .35s, border-color .25s;
+}
+/* mouse-follow spotlight */
+.problem-card::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: 20px;
+  background: radial-gradient(380px circle at var(--mx,50%) var(--my,50%), rgba(41,171,226,.09), transparent 65%);
+  opacity: 0; transition: opacity .3s;
+}
+.problem-card:hover::before { opacity: 1; }
+/* top shimmer line */
+.problem-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--blue),transparent); opacity: 0; transition: opacity .3s; }
+.problem-card:hover { transform: translateY(-8px); box-shadow: 0 28px 64px rgba(41,171,226,.1),0 8px 20px rgba(0,0,0,.07); border-color: rgba(41,171,226,.25); }
+.problem-card:hover::after { opacity: 1; }
+.p-inner { position: relative; z-index: 1; }
+.problem-icon { width: 52px; height: 52px; background: linear-gradient(135deg,rgba(41,171,226,.15),rgba(41,171,226,.05)); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; color: var(--blue); border: 1px solid rgba(41,171,226,.2); transition: transform .3s, box-shadow .3s; }
+.problem-card:hover .problem-icon { transform: scale(1.1) rotate(-5deg); box-shadow: 0 0 22px rgba(41,171,226,.3); }
+.problem-icon svg { width: 24px; height: 24px; }
+.problem-card h3 { font-family: var(--font-display); font-size: 1.08rem; font-weight: 700; color: var(--ink); margin-bottom: 12px; letter-spacing: -.01em; }
+.problem-card p { font-size: .9rem; line-height: 1.65; color: var(--muted); }
+.card-num { position: absolute; bottom: 20px; right: 26px; font-family: var(--font-display); font-size: 4.5rem; font-weight: 900; color: rgba(41,171,226,.05); line-height: 1; pointer-events: none; transition: color .3s; }
+.problem-card:hover .card-num { color: rgba(41,171,226,.1); }
+
+/* ── SOLUTION (TIMELINE) ── */
+.section-solution { padding: 120px 48px; background: var(--ink); position: relative; overflow: hidden; }
+.section-solution::before { content: ''; position: absolute; top: -300px; right: -300px; width: 800px; height: 800px; background: radial-gradient(circle,rgba(41,171,226,.1),transparent 65%); pointer-events: none; animation: breathe 8s ease-in-out infinite; }
+.section-solution::after { content: ''; position: absolute; bottom: -200px; left: -100px; width: 500px; height: 500px; background: radial-gradient(circle,rgba(41,171,226,.06),transparent 65%); pointer-events: none; animation: breathe 6s ease-in-out infinite reverse; }
+.section-solution .section-title { color: #fff; }
+.section-solution .section-body { color: rgba(255,255,255,.5); }
+.section-solution .eyebrow { color: var(--blue); }
+.timeline { position: relative; margin-top: 80px; padding-bottom: 40px; }
+.timeline::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom,transparent,rgba(41,171,226,.5) 10%,rgba(41,171,226,.5) 90%,transparent); transform: translateX(-50%); }
+.tl-step { display: grid; grid-template-columns: 1fr 80px 1fr; align-items: center; margin-bottom: 64px; }
+.tl-step:last-child { margin-bottom: 0; }
+.tl-card {
+  background: #12181f; border: 1px solid rgba(255,255,255,.07); border-radius: 16px; padding: 36px 32px;
+  position: relative; transition: border-color .3s, transform .3s, box-shadow .3s;
+}
+.tl-card:hover { border-color: rgba(41,171,226,.4); transform: translateY(-4px); box-shadow: 0 20px 50px rgba(0,0,0,.4),0 0 28px rgba(41,171,226,.08); }
+.tl-card::after { content: ''; position: absolute; top: 50%; width: 32px; height: 2px; background: rgba(41,171,226,.4); transform: translateY(-50%); }
+.tl-step:nth-child(odd) .tl-card { grid-column: 1; }
+.tl-step:nth-child(odd) .tl-card::after { right: -32px; }
+.tl-step:nth-child(odd) .tl-empty { grid-column: 3; }
+.tl-step:nth-child(even) .tl-card { grid-column: 3; order: 2; }
+.tl-step:nth-child(even) .tl-card::after { left: -32px; }
+.tl-step:nth-child(even) .tl-node { order: 1; grid-column: 2; }
+.tl-step:nth-child(even) .tl-empty { grid-column: 1; order: 0; }
+.tl-node { grid-column: 2; display: flex; align-items: center; justify-content: center; z-index: 2; }
+.tl-num { width: 52px; height: 52px; background: var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 900; font-size: 1.1rem; color: #fff; animation: nodeGlow 3s ease-in-out infinite; }
+@keyframes nodeGlow { 0%,100%{box-shadow:0 0 0 6px rgba(41,171,226,.15),0 0 0 12px rgba(41,171,226,.06)} 50%{box-shadow:0 0 0 9px rgba(41,171,226,.25),0 0 0 18px rgba(41,171,226,.1)} }
+.tl-icon { width: 44px; height: 44px; background: rgba(41,171,226,.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; color: var(--blue); border: 1px solid rgba(41,171,226,.2); }
+.tl-icon svg { width: 22px; height: 22px; }
+.tl-tag { display: inline-flex; align-items: center; gap: 5px; background: rgba(41,171,226,.1); border: 1px solid rgba(41,171,226,.2); color: var(--blue); font-size: .7rem; font-weight: 600; padding: 4px 10px; border-radius: 100px; margin-bottom: 14px; letter-spacing: .04em; text-transform: uppercase; }
+.tl-card h3 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 10px; letter-spacing: -.02em; }
+.tl-card p { font-size: .88rem; line-height: 1.65; color: rgba(255,255,255,.5); }
+
+/* ── SCREENS ── */
+.section-screens { padding: 120px 48px; background: var(--white); }
+.screen-block { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; margin-bottom: 100px; }
+.screen-block:last-child { margin-bottom: 0; }
+.screen-block.rev { direction: rtl; }
+.screen-block.rev > * { direction: ltr; }
+.screen-copy .section-title { margin-bottom: 16px; }
+.screen-copy .section-body { margin-bottom: 24px; }
+.screen-caption { font-size: .85rem; color: var(--muted); line-height: 1.6; padding-left: 16px; border-left: 2px solid var(--blue); font-style: italic; }
+.screen-visual { border-radius: 16px; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,.12); border: 1px solid var(--border); transition: transform .4s cubic-bezier(.23,1,.32,1), box-shadow .4s; }
+.screen-visual:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 40px 80px rgba(0,0,0,.16),0 0 28px rgba(41,171,226,.08); }
+
+/* Console mockup */
+.console-mockup { background: #f8fafc; }
+.con-header { background: #0c1016; padding: 14px 20px; display: flex; align-items: center; gap: 12px; }
+.con-nav { font-size: .7rem; color: rgba(255,255,255,.5); padding: 6px 12px; border-radius: 6px; }
+.con-nav.active { background: rgba(41,171,226,.2); color: var(--blue); font-weight: 600; }
+.con-body { padding: 20px; }
+.con-title { font-family: var(--font-display); font-size: .85rem; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+.con-ts { font-size: .65rem; color: var(--muted); margin-bottom: 14px; }
+.con-kpis { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 14px; }
+.con-kpi { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+.con-kpi-lbl { font-size: .6rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+.con-kpi-val { font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; color: var(--ink); line-height: 1; margin-bottom: 8px; }
+.con-kpi-val.bl { color: var(--blue); }
+.bl-live { background: rgba(41,171,226,.12); color: var(--blue); font-size: .55rem; font-weight: 700; padding: 2px 5px; border-radius: 3px; }
+.bl-crit { background: rgba(239,68,68,.12); color: #dc2626; font-size: .55rem; font-weight: 700; padding: 2px 5px; border-radius: 3px; }
+.con-spark { height: 22px; } .con-spark svg { width: 100%; height: 100%; }
+.con-bot { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.con-panel { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.con-panel-title { font-size: .7rem; font-weight: 600; color: var(--ink); margin-bottom: 10px; }
+.zrow { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f0f2f5; font-size: .65rem; }
+.zrow:last-child { border-bottom: none; }
+.zrow-name { color: var(--muted); }
+.zrow-val { font-weight: 700; color: var(--ink); font-family: var(--font-display); font-size: .72rem; }
+.zdot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; display: inline-block; }
+.zdot.g{background:#4ade80} .zdot.o{background:#fb923c} .zdot.b{background:var(--blue)}
+
+/* Map mockup */
+.map-mockup { background: #1a1f2a; padding: 16px; }
+.map-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.map-ttl { font-size: .75rem; font-weight: 700; color: #fff; font-family: var(--font-display); }
+.map-leg { display: flex; gap: 12px; }
+.map-leg-item { display: flex; align-items: center; gap: 4px; font-size: .6rem; color: rgba(255,255,255,.5); }
+.map-leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+.map-canvas { background: #232b38; border-radius: 10px; height: 220px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,.06); }
+.map-canvas::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px); background-size: 30px 30px; }
+.map-stage { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 140px; height: 40px; background: rgba(41,171,226,.2); border: 1px solid rgba(41,171,226,.5); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: .6rem; color: var(--blue); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.mzb { position: absolute; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px; font-size: .55rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.mzb .zl { font-size: .55rem; }
+.mzb .zc { font-size: .7rem; font-weight: 800; font-family: var(--font-display); }
+.zf{background:rgba(251,146,60,.2);border:1px solid rgba(251,146,60,.4);color:#fb923c;bottom:40px;left:20px;width:90px;height:60px}
+.zb{background:rgba(41,171,226,.2);border:1px solid rgba(41,171,226,.4);color:var(--blue);bottom:40px;right:20px;width:90px;height:60px}
+.zv{background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.4);color:#a855f7;top:80px;left:20px;width:70px;height:50px}
+.zm{background:rgba(74,222,128,.2);border:1px solid rgba(74,222,128,.4);color:#4ade80;top:80px;right:20px;width:70px;height:50px}
+.mpin { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 10px rgba(41,171,226,.8); animation: mpp 2s infinite; }
+@keyframes mpp { 0%,100%{box-shadow:0 0 8px rgba(41,171,226,.8)}50%{box-shadow:0 0 20px rgba(41,171,226,1)} }
+.map-ibar { display: flex; gap: 8px; margin-top: 12px; }
+.map-ic { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); border-radius: 6px; padding: 8px 12px; font-size: .65rem; color: rgba(255,255,255,.6); flex: 1; text-align: center; }
+.map-ic strong { display: block; font-size: .8rem; color: #fff; font-family: var(--font-display); font-weight: 700; margin-bottom: 2px; }
+
+/* ── FOR WHO ── */
+.section-forwho { padding: 120px 48px; background: var(--surface); }
+.tags-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 48px; }
+.tag-chip { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--border); border-radius: 100px; padding: 10px 20px; font-size: .88rem; font-weight: 500; color: var(--ink); transition: all .2s; text-decoration: none; }
+.tag-chip:hover { border-color: var(--blue); color: var(--blue); background: rgba(41,171,226,.06); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(41,171,226,.18); }
+.tag-chip svg { width: 16px; height: 16px; color: var(--blue); }
+
+/* ── ANALYTICS ── */
+.section-analytics { padding: 120px 48px; background: var(--ink); position: relative; overflow: hidden; }
+.section-analytics::before { content: ''; position: absolute; top: -200px; right: -200px; width: 600px; height: 600px; background: radial-gradient(circle,rgba(41,171,226,.1),transparent 65%); pointer-events: none; animation: breathe 7s ease-in-out infinite; }
+.section-analytics::after { content: ''; position: absolute; bottom: -200px; left: -200px; width: 600px; height: 600px; background: radial-gradient(circle,rgba(41,171,226,.07),transparent 65%); pointer-events: none; animation: breathe 5s ease-in-out infinite reverse; }
+.section-analytics .section-title { color: #fff; }
+.section-analytics .section-body { color: rgba(255,255,255,.5); }
+.section-analytics .eyebrow { color: var(--blue); }
+.analytics-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-top: 64px; }
+
+.analytics-card {
+  background: #12181f; border: 1px solid rgba(255,255,255,.06); border-radius: 16px; padding: 28px 24px;
+  position: relative; overflow: hidden;
+  transition: border-color .3s, transform .35s cubic-bezier(.23,1,.32,1), box-shadow .35s;
+}
+/* shimmer sweep */
+.analytics-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg,transparent 30%,rgba(41,171,226,.07) 50%,transparent 70%); transform: translateX(-100%); transition: transform .6s ease; pointer-events: none; }
+.analytics-card:hover::before { transform: translateX(100%); }
+/* bottom glow line */
+.analytics-card::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 2px; background: linear-gradient(90deg,transparent,var(--blue),transparent); opacity: 0; transition: opacity .3s; }
+.analytics-card:hover { border-color: rgba(41,171,226,.3); transform: translateY(-6px); box-shadow: 0 22px 52px rgba(0,0,0,.4),0 0 28px rgba(41,171,226,.08); }
+.analytics-card:hover::after { opacity: 1; }
+.ac-icon { width: 44px; height: 44px; background: rgba(41,171,226,.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; color: var(--blue); border: 1px solid rgba(41,171,226,.2); transition: transform .3s, box-shadow .3s; position: relative; z-index: 1; }
+.analytics-card:hover .ac-icon { transform: scale(1.1) rotate(-6deg); box-shadow: 0 0 20px rgba(41,171,226,.35); }
+.ac-icon svg { width: 20px; height: 20px; }
+.ac-stat { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: var(--blue); line-height: 1; margin-bottom: 6px; display: block; position: relative; z-index: 1; }
+.analytics-card h3 { font-family: var(--font-display); font-size: .95rem; font-weight: 700; color: #fff; margin-bottom: 8px; position: relative; z-index: 1; }
+.analytics-card p { font-size: .82rem; line-height: 1.6; color: rgba(255,255,255,.4); position: relative; z-index: 1; }
+
+/* ── CTA / FORM ── */
+.section-cta { padding: 120px 48px; background: var(--white); }
+.cta-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+.cta-copy .section-title { margin-bottom: 16px; }
+.cta-copy .section-body { margin-bottom: 32px; }
+.cta-feats { display: flex; flex-direction: column; gap: 12px; }
+.cta-feat { display: flex; align-items: flex-start; gap: 12px; font-size: .9rem; color: var(--slate); line-height: 1.5; }
+.cta-feat-ic { width: 22px; height: 22px; background: rgba(41,171,226,.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; color: var(--blue); }
+.cta-feat-ic svg { width: 12px; height: 12px; }
+.form-card { background: var(--ink); border-radius: 20px; padding: 40px; border: 1px solid rgba(255,255,255,.06); box-shadow: 0 32px 80px rgba(0,0,0,.12); }
+.form-ttl { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.form-sub { font-size: .85rem; color: rgba(255,255,255,.4); margin-bottom: 28px; line-height: 1.5; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.fg { display: flex; flex-direction: column; gap: 6px; }
+.fg.full { grid-column: 1/-1; }
+.flabel { font-size: .72rem; font-weight: 600; color: rgba(255,255,255,.5); letter-spacing: .06em; text-transform: uppercase; }
+.finput, .fsel, .ftxt { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 12px 14px; font-family: var(--font-body); font-size: .9rem; color: #fff; outline: none; transition: border-color .2s, background .2s; width: 100%; }
+.finput::placeholder, .ftxt::placeholder { color: rgba(255,255,255,.25); }
+.finput:focus,.fsel:focus,.ftxt:focus { border-color: var(--blue); background: rgba(41,171,226,.06); }
+.fsel { appearance: none; }
+.fsel option { background: #1a2230; color: #fff; }
+.ftxt { resize: vertical; min-height: 80px; }
+.fsub { width: 100%; background: var(--blue); color: #fff; font-family: var(--font-display); font-weight: 700; font-size: 1rem; padding: 14px; border: none; border-radius: 8px; margin-top: 4px; transition: background .2s, transform .15s, box-shadow .2s; box-shadow: 0 4px 16px rgba(41,171,226,.3); }
+.fsub:hover { background: var(--blue-dark); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(41,171,226,.4); }
+.fpriv { font-size: .72rem; color: rgba(255,255,255,.25); text-align: center; margin-top: 12px; line-height: 1.5; }
+
+/* ── FOOTER ── */
+footer { background: #080c10; padding: 40px 48px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,.08); }
+.footer-logo { font-family: var(--font-display); font-weight: 800; font-size: 1rem; color: #fff; }
+.footer-logo span { background: var(--blue); color: #fff; font-size: .65em; padding: 2px 6px; border-radius: 3px; font-style: italic; margin-left: 2px; }
+.footer-copy { font-size: .8rem; color: rgba(255,255,255,.75); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  nav { padding: 0 24px; }
+  .hero { grid-template-columns: 1fr; padding: 120px 24px 60px; }
+  .hero-visual { display: none; }
+  .section-problem,.section-solution,.section-screens,.section-forwho,.section-analytics,.section-cta { padding: 80px 24px; }
+  .problem-grid,.analytics-cards { grid-template-columns: 1fr; }
+  .timeline::before { left: 24px; }
+  .tl-step { grid-template-columns: 52px 1fr; gap: 20px; }
+  .tl-step:nth-child(odd) .tl-card { grid-column: 2; grid-row: 1; }
+  .tl-step:nth-child(odd) .tl-card::after,.tl-step:nth-child(even) .tl-card::after { display: none; }
+  .tl-step:nth-child(odd) .tl-node { grid-column: 1; grid-row: 1; }
+  .tl-step:nth-child(odd) .tl-empty { display: none; }
+  .tl-step:nth-child(even) { direction: ltr; }
+  .tl-step:nth-child(even) .tl-card { grid-column: 2; grid-row: 1; order: 2; }
+  .tl-step:nth-child(even) .tl-node { grid-column: 1; grid-row: 1; order: 1; }
+  .tl-step:nth-child(even) .tl-empty { display: none; }
+  .screen-block,.screen-block.rev { grid-template-columns: 1fr; direction: ltr; }
+  .cta-inner { grid-template-columns: 1fr; }
+  .mock-kpis,.con-kpis { grid-template-columns: repeat(2,1fr); }
+  footer { flex-direction: column; gap: 12px; text-align: center; }
+  #cursor,#cursor-ring { display: none; }
+}
+
+/* ── SCROLL ANIMATIONS ── */
+.fade-up { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+.d1{transition-delay:.1s} .d2{transition-delay:.2s} .d3{transition-delay:.3s} .d4{transition-delay:.4s}
+
+/* particle canvas */
+#pts { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+
+/* ── CURSOR TRAIL ── */
+.trail-dot {
+  position: fixed; width: 5px; height: 5px;
+  background: var(--blue); border-radius: 50%; pointer-events: none;
+  z-index: 99990; transform: translate(-50%,-50%);
+  opacity: 0.6; transition: opacity 0.3s;
+}
+
+/* ── AURORA BACKGROUNDS ── */
+.section-problem { isolation: isolate; }
+.aurora-bg {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.aurora-blob {
+  position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.13;
+  animation: auroraFloat 12s ease-in-out infinite;
+}
+.aurora-blob:nth-child(1) { width: 400px; height: 400px; background: #29ABE2; top: -100px; right: -80px; animation-delay: 0s; }
+.aurora-blob:nth-child(2) { width: 300px; height: 300px; background: #0d5f82; bottom: -80px; left: -60px; animation-delay: -4s; }
+.aurora-blob:nth-child(3) { width: 250px; height: 250px; background: #29ABE2; top: 50%; left: 40%; animation-delay: -8s; }
+@keyframes auroraFloat {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%  { transform: translate(30px,-20px) scale(1.08); }
+  66%  { transform: translate(-20px,25px) scale(0.95); }
+}
+
+/* ── DASHBOARD: ANIMATED BAR CHART ── */
+.mock-bars { display: flex; align-items: flex-end; gap: 4px; height: 48px; padding-top: 4px; margin-top: 10px; }
+.mock-bar-col { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
+.mock-bar {
+  width: 100%; border-radius: 3px 3px 0 0;
+  background: var(--blue); opacity: 0.7;
+  transform-origin: bottom; transform: scaleY(0);
+  animation: growBar 0.6s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes growBar { to { transform: scaleY(1); } }
+.mock-bar.green { background: #4ade80; opacity: 0.8; }
+.mock-bar-tick { font-size: 0.5rem; color: rgba(255,255,255,0.3); }
+
+/* ── DASHBOARD: LIVE STATUS TICKER ── */
+.mock-ticker {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(41,171,226,0.06); border: 1px solid rgba(41,171,226,0.12);
+  border-radius: 6px; padding: 6px 12px; margin-top: 10px; overflow: hidden;
+}
+.ticker-label { font-size: 0.58rem; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0; }
+.ticker-track { flex: 1; overflow: hidden; position: relative; height: 14px; }
+.ticker-items { display: flex; gap: 32px; position: absolute; white-space: nowrap; animation: tickScroll 18s linear infinite; }
+.ticker-item { font-size: 0.62rem; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 6px; }
+.ticker-item .ti-up { color: #4ade80; }
+.ticker-item .ti-down { color: #fb923c; }
+@keyframes tickScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+/* ── PROBLEM CARDS: 3D TILT ── */
+.problem-card {
+  transform-style: preserve-3d;
+  perspective: 800px;
+}
+.p-inner { transform: translateZ(20px); }
+.card-num { transform: translateZ(10px); }
+
+/* ── PROBLEM CARDS: entrance animation ── */
+.problem-card.visible {
+  animation: cardEntrance 0.7s cubic-bezier(.34,1.2,.64,1) both;
+}
+.problem-card.visible.d2 { animation-delay: 0.12s; }
+.problem-card.visible.d3 { animation-delay: 0.24s; }
+@keyframes cardEntrance {
+  from { opacity: 0; transform: translateY(32px) rotateX(8deg) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) rotateX(0) scale(1); }
+}
+
+/* ── ANALYTICS CARDS: staggered entrance ── */
+.analytics-card.visible {
+  animation: acEntrance 0.65s cubic-bezier(.34,1.2,.64,1) both;
+}
+.analytics-card.d1.visible { animation-delay: 0s; }
+.analytics-card.d2.visible { animation-delay: 0.1s; }
+.analytics-card.d3.visible { animation-delay: 0.2s; }
+.analytics-card.d4.visible { animation-delay: 0.3s; }
+@keyframes acEntrance {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── ANALYTICS CARDS: progress ring ── */
+.ac-ring-wrap { display: flex; justify-content: flex-end; margin-bottom: 8px; position: relative; z-index: 1; }
+.ac-ring { width: 36px; height: 36px; }
+.ac-ring circle { fill: none; stroke-width: 3; }
+.ac-ring .ring-bg { stroke: rgba(41,171,226,0.15); }
+.ac-ring .ring-fill {
+  stroke: var(--blue); stroke-linecap: round;
+  stroke-dasharray: 100 100; stroke-dashoffset: 100;
+  transition: stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1);
+  transform: rotate(-90deg); transform-origin: 50% 50%;
+}
+
+/* ── SECTION SCREENS: floating label badges ── */
+.screen-visual { position: relative; }
+</style>
+</head>
+<body>
+
+<!-- CURSORS -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="7" fill="#29ABE2"/><path d="M22 16c0 3.314-2.686 6-6 6s-6-2.686-6-6 2.686-6 6-6 6 2.686 6 6z" fill="white"/><path d="M8 13h6M7 16h5M8 19h6" stroke="#29ABE2" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <div class="nav-wordmark">orlay<span>pay</span></div>
+  </div>
+  <a href="#demo" class="nav-cta">Richiedi una demo</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <canvas id="pts"></canvas>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Continuità di vendita per eventi live ad alta affluenza</div>
+    <h1>Il pubblico è già lì.<br>Non perdere vendite<br>nei momenti di <em>picco.</em></h1>
+    <p class="hero-body">Orlay Pay aiuta organizzatori, venue e operatori food &amp; beverage a rendere ordine, incasso e ritiro più fluidi: meno code, meno rinunce, più controllo operativo.</p>
+    <div class="hero-actions">
+      <a href="#demo" class="btn-primary">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M9 2v14M2 9h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Richiedi una demo
+      </a>
+      <div class="hero-micro"><strong>Food &amp; beverage</strong> · Hospitality · Aree VIP · Punti bar · Merchandising</div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="db-glow"></div>
+    <div class="dashboard-mockup">
+      <div class="mock-topbar">
+        <div class="mock-logo-sm">orlay<span>pay</span></div>
+        <div class="mock-badge">LIVE · Summer Festival 2026</div>
+      </div>
+      <div class="mock-body">
+        <div class="mock-title">Console operativa evento</div>
+        <div class="mock-subtitle">Tutti gli eventi · finestra Sempre · aggiornato adesso</div>
+        <div class="mock-kpis">
+          <div class="mock-kpi">
+            <div class="mock-kpi-label">Incassato</div>
+            <div class="mock-kpi-val">€37.8K</div>
+            <div class="mock-live">Live</div>
+            <div class="spark">
+              <svg viewBox="0 0 80 24" preserveAspectRatio="none">
+                <defs><linearGradient id="sg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#29ABE2" stop-opacity=".3"/><stop offset="100%" stop-color="#29ABE2" stop-opacity="0"/></linearGradient></defs>
+                <path d="M0,20 L15,16 L25,18 L35,10 L45,12 L55,6 L65,8 L80,3 L80,24 L0,24Z" fill="url(#sg1)"/>
+                <polyline class="spark-path" points="0,20 15,16 25,18 35,10 45,12 55,6 65,8 80,3" fill="none" stroke="#29ABE2" stroke-width="1.5"/>
+              </svg>
+            </div>
+          </div>
+          <div class="mock-kpi">
+            <div class="mock-kpi-label">Ordini</div>
+            <div class="mock-kpi-val bl" id="ctr">3.000</div>
+            <div class="spark">
+              <svg viewBox="0 0 80 24" preserveAspectRatio="none">
+                <polyline class="spark-path sp2" points="0,18 12,15 22,14 34,9 46,10 58,7 70,5 80,4" fill="none" stroke="#29ABE2" stroke-width="1.5"/>
+              </svg>
+            </div>
+          </div>
+          <div class="mock-kpi">
+            <div class="mock-kpi-label">Conversione</div>
+            <div class="mock-kpi-val">65%</div>
+            <div class="spark">
+              <svg viewBox="0 0 80 24" preserveAspectRatio="none">
+                <polyline class="spark-path sp3" points="0,14 20,12 35,15 48,8 60,10 75,6 80,7" fill="none" stroke="#29ABE2" stroke-width="1.5"/>
+              </svg>
+            </div>
+          </div>
+          <div class="mock-kpi">
+            <div class="mock-kpi-label">Ticket medio</div>
+            <div class="mock-kpi-val">€18.99</div>
+            <div class="spark">
+              <svg viewBox="0 0 80 24" preserveAspectRatio="none">
+                <polyline class="spark-path sp4" points="0,16 18,13 30,15 42,11 55,9 68,7 80,6" fill="none" stroke="#29ABE2" stroke-width="1.5"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="mock-chart">
+          <div class="mock-chart-lbl">Ordini e pagamenti nel tempo</div>
+          <div class="mock-chart-area">
+            <svg viewBox="0 0 320 60" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="cg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#29ABE2" stop-opacity=".35"/><stop offset="100%" stop-color="#29ABE2" stop-opacity="0"/></linearGradient>
+                <linearGradient id="cg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4ade80" stop-opacity=".2"/><stop offset="100%" stop-color="#4ade80" stop-opacity="0"/></linearGradient>
+              </defs>
+              <path d="M0,50 C20,48 40,42 60,35 C80,28 100,30 120,22 C140,14 160,18 180,12 C200,6 220,8 240,5 C260,2 280,4 320,3 L320,60 L0,60Z" fill="url(#cg1)"/>
+              <path class="spark-path" style="stroke-dasharray:600;stroke-dashoffset:600;animation-delay:.3s" d="M0,50 C20,48 40,42 60,35 C80,28 100,30 120,22 C140,14 160,18 180,12 C200,6 220,8 240,5 C260,2 280,4 320,3" fill="none" stroke="#29ABE2" stroke-width="1.5"/>
+              <path class="spark-path" style="stroke-dasharray:400;stroke-dashoffset:400;animation-delay:.8s" d="M0,55 C30,52 50,48 80,44 C110,40 130,38 160,30 C190,22 210,24 240,18 C270,12 290,14 320,10" fill="none" stroke="#4ade80" stroke-width="1.5" stroke-dasharray="5,3"/>
+            </svg>
+          </div>
+          <div class="mock-bars" id="barChart"></div>
+          <div class="mock-ticker">
+            <div class="ticker-label">Live</div>
+            <div class="ticker-track">
+              <div class="ticker-items" id="ticker">
+                <span class="ticker-item"><span class="ti-up">▲</span> Bar A +12 ordini</span>
+                <span class="ticker-item"><span class="ti-up">▲</span> Area VIP €340 incassati</span>
+                <span class="ticker-item"><span class="ti-down">▼</span> Food Court 2 min attesa</span>
+                <span class="ticker-item"><span class="ti-up">▲</span> Merch +5 transazioni</span>
+                <span class="ticker-item"><span class="ti-up">▲</span> Bar B picco +28%</span>
+                <span class="ticker-item"><span class="ti-down">▼</span> Bar C coda 3 persone</span>
+                <span class="ticker-item"><span class="ti-up">▲</span> Bar A +12 ordini</span>
+                <span class="ticker-item"><span class="ti-up">▲</span> Area VIP €340 incassati</span>
+                <span class="ticker-item"><span class="ti-down">▼</span> Food Court 2 min attesa</span>
+                <span class="ticker-item"><span class="ti-up">▲</span> Merch +5 transazioni</span>
+                <span class="ticker-item"><span class="ti-up">▲</span> Bar B picco +28%</span>
+                <span class="ticker-item"><span class="ti-down">▼</span> Bar C coda 3 persone</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="section-problem">
+  <div class="aurora-bg">
+    <div class="aurora-blob"></div>
+    <div class="aurora-blob"></div>
+    <div class="aurora-blob"></div>
+  </div>
+  <div class="section-header fade-up">
+    <div class="eyebrow">Il problema</div>
+    <h2 class="section-title">La vendita si perde prima del pagamento.</h2>
+    <p class="section-body">Quando l'affluenza cresce, il punto di servizio diventa il collo di bottiglia: il pubblico aspetta, ordina meno o rinuncia. Lo staff gestisce confusione invece di servire. L'organizzatore vede i dati quando è troppo tardi.</p>
+  </div>
+  <div class="problem-grid">
+    <div class="problem-card fade-up d1">
+      <div class="p-inner">
+        <div class="problem-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>Code e doppia attesa</h3>
+        <p>Il fan perde tempo tra scelta, pagamento e ritiro. Ogni minuto in fila abbassa la probabilità di completare l'acquisto.</p>
+      </div>
+      <div class="card-num">01</div>
+    </div>
+    <div class="problem-card fade-up d2">
+      <div class="p-inner">
+        <div class="problem-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+        <h3>Staff sotto pressione</h3>
+        <p>Il banco rallenta quando deve ricostruire ordini, importi e prossime azioni. Meno servizio, più improvvisazione.</p>
+      </div>
+      <div class="card-num">02</div>
+    </div>
+    <div class="problem-card fade-up d3">
+      <div class="p-inner">
+        <div class="problem-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <h3>Dati frammentati</h3>
+        <p>A fine evento è difficile capire dove si è persa domanda. Ogni evento riparte da zero invece di accumulare apprendimento.</p>
+      </div>
+      <div class="card-num">03</div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section class="section-solution">
+  <div class="section-header fade-up">
+    <div class="eyebrow">La soluzione</div>
+    <h2 class="section-title">Una regia unica per trasformare il servizio in ricavo.</h2>
+    <p class="section-body">Orlay Pay rende più leggibile il percorso del fan, più veloce il lavoro dello staff e più chiaro il controllo dell'organizzatore. Il risultato è un evento più ordinato nei momenti critici.</p>
+  </div>
+  <div class="timeline">
+    <div class="tl-step fade-up">
+      <div class="tl-card">
+        <div class="tl-tag"><svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg> Ricavo</div>
+        <div class="tl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        <h3>Più ordini completati</h3>
+        <p>Soprattutto nelle finestre di massima domanda. Ogni secondo in meno di attesa si traduce direttamente in conversioni.</p>
+      </div>
+      <div class="tl-node"><div class="tl-num">01</div></div>
+      <div class="tl-empty"></div>
+    </div>
+    <div class="tl-step fade-up">
+      <div class="tl-empty"></div>
+      <div class="tl-node"><div class="tl-num">02</div></div>
+      <div class="tl-card">
+        <div class="tl-tag"><svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg> Operatività</div>
+        <div class="tl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <h3>Più velocità al banco</h3>
+        <p>Meno passaggi manuali, meno errori, meno improvvisazione. Lo staff serve, non gestisce il caos.</p>
+      </div>
+    </div>
+    <div class="tl-step fade-up">
+      <div class="tl-card">
+        <div class="tl-tag"><svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg> Controllo</div>
+        <div class="tl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+        <h3>Più controllo per zona</h3>
+        <p>Ordini, incassi, ritiri e performance leggibili per area in tempo reale. Intervieni dove serve, quando serve.</p>
+      </div>
+      <div class="tl-node"><div class="tl-num">03</div></div>
+      <div class="tl-empty"></div>
+    </div>
+    <div class="tl-step fade-up">
+      <div class="tl-empty"></div>
+      <div class="tl-node"><div class="tl-num">04</div></div>
+      <div class="tl-card">
+        <div class="tl-tag"><svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg> Analytics</div>
+        <div class="tl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>
+        <h3>Più valore post-evento</h3>
+        <p>Dati utili per decidere pricing, staffing e layout degli eventi successivi. Ogni evento alimenta il prossimo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENS -->
+<section class="section-screens">
+  <div class="screen-block">
+    <div class="screen-copy fade-up">
+      <div class="eyebrow">Console organizzatore</div>
+      <h2 class="section-title">Controllo live dell'evento.</h2>
+      <p class="section-body">Monitora ordini, incassi, ritiri, punti di servizio e aree critiche da una sola vista operativa.</p>
+      <div class="screen-caption">Capisci dove la domanda cresce, dove il servizio rallenta e cosa correggere durante l'evento.</div>
+    </div>
+    <div class="screen-visual fade-up d2">
+      <div class="console-mockup">
+        <div class="con-header">
+          <div class="mock-logo-sm" style="color:#fff">orlay<span>pay</span></div>
+          <div class="con-nav active">Dashboard</div>
+          <div class="con-nav">Ordini</div>
+          <div class="con-nav">Zone</div>
+          <div class="con-nav">Mappe</div>
+        </div>
+        <div class="con-body">
+          <div class="con-title">Console operativa evento</div>
+          <div class="con-ts">Tutti gli eventi · finestra Sempre · aggiornato 10/04/2026 12:22</div>
+          <div class="con-kpis">
+            <div class="con-kpi"><div class="con-kpi-lbl">Incassato <span class="bl-live">Live</span></div><div class="con-kpi-val">€37.866</div><div class="con-spark"><svg viewBox="0 0 80 22" preserveAspectRatio="none"><polyline points="0,18 15,14 28,16 40,9 52,11 65,5 80,3" fill="none" stroke="#29ABE2" stroke-width="1.5"/></svg></div></div>
+            <div class="con-kpi"><div class="con-kpi-lbl">Ordini <span class="bl-live">Live</span></div><div class="con-kpi-val bl">3.000</div><div class="con-spark"><svg viewBox="0 0 80 22" preserveAspectRatio="none"><polyline points="0,17 12,14 25,13 38,8 50,9 64,6 80,4" fill="none" stroke="#29ABE2" stroke-width="1.5"/></svg></div></div>
+            <div class="con-kpi"><div class="con-kpi-lbl">Conversione <span class="bl-live">Live</span></div><div class="con-kpi-val">65%</div><div class="con-spark"><svg viewBox="0 0 80 22" preserveAspectRatio="none"><polyline points="0,14 20,11 35,14 48,7 60,9 75,5 80,6" fill="none" stroke="#29ABE2" stroke-width="1.5"/></svg></div></div>
+            <div class="con-kpi"><div class="con-kpi-lbl">Device <span class="bl-crit">⚠ Critico</span></div><div class="con-kpi-val" style="color:#dc2626">0/30</div><div class="con-spark"><svg viewBox="0 0 80 22" preserveAspectRatio="none"><polyline points="0,10 20,10 40,10 55,10 80,10" fill="none" stroke="#dc2626" stroke-width="1.5"/></svg></div></div>
+          </div>
+          <div class="con-bot">
+            <div class="con-panel">
+              <div class="con-panel-title">Performance per zona</div>
+              <div class="zrow"><span><span class="zdot g"></span><span class="zrow-name">Bar principale</span></span><span class="zrow-val">€12.4K</span></div>
+              <div class="zrow"><span><span class="zdot b"></span><span class="zrow-name">Food Court</span></span><span class="zrow-val">€9.2K</span></div>
+              <div class="zrow"><span><span class="zdot g"></span><span class="zrow-name">Area VIP</span></span><span class="zrow-val">€8.7K</span></div>
+              <div class="zrow"><span><span class="zdot o"></span><span class="zrow-name">Merch</span></span><span class="zrow-val">€4.1K</span></div>
+            </div>
+            <div class="con-panel">
+              <div class="con-panel-title">Andamento ordini</div>
+              <div style="height:80px"><svg viewBox="0 0 200 80" preserveAspectRatio="none" width="100%" height="100%">
+                <defs><linearGradient id="cpg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#29ABE2" stop-opacity=".2"/><stop offset="100%" stop-color="#29ABE2" stop-opacity="0"/></linearGradient></defs>
+                <path d="M0,70 C20,65 40,58 60,45 C80,32 100,36 120,25 C140,14 160,18 180,10 C190,6 200,5 200,5 L200,80 L0,80Z" fill="url(#cpg)"/>
+                <path d="M0,70 C20,65 40,58 60,45 C80,32 100,36 120,25 C140,14 160,18 180,10 C190,6 200,5 200,5" fill="none" stroke="#29ABE2" stroke-width="1.5"/>
+              </svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="screen-block rev">
+    <div class="screen-copy fade-up">
+      <div class="eyebrow">Mappa e percorsi</div>
+      <h2 class="section-title">L'evento diventa più leggibile.</h2>
+      <p class="section-body">Mappe, informazioni e percorsi aiutano il pubblico a capire dove andare e riducono domande ripetitive allo staff.</p>
+      <div class="screen-caption">Utile per food court, bar, hospitality, VIP, merch e punti di ritiro dedicati.</div>
+    </div>
+    <div class="screen-visual fade-up d2">
+      <div class="map-mockup">
+        <div class="map-hdr">
+          <div class="map-ttl">Rock Fest — Mappa evento</div>
+          <div class="map-leg">
+            <div class="map-leg-item"><div class="map-leg-dot" style="background:#fb923c"></div>Food</div>
+            <div class="map-leg-item"><div class="map-leg-dot" style="background:#29ABE2"></div>Bar</div>
+            <div class="map-leg-item"><div class="map-leg-dot" style="background:#a855f7"></div>VIP</div>
+            <div class="map-leg-item"><div class="map-leg-dot" style="background:#4ade80"></div>Merch</div>
+          </div>
+        </div>
+        <div class="map-canvas">
+          <div class="map-stage">PALCO PRINCIPALE</div>
+          <div class="mzb zf"><span class="zl">Food Court</span><span class="zc">4 punti</span></div>
+          <div class="mzb zb"><span class="zl">Bar</span><span class="zc">6 punti</span></div>
+          <div class="mzb zv"><span class="zl">VIP</span><span class="zc">2 aree</span></div>
+          <div class="mzb zm"><span class="zl">Merch</span><span class="zc">3 punti</span></div>
+          <div class="mpin" style="top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+          <div class="mpin" style="top:65%;left:35%;width:7px;height:7px;background:#fb923c;box-shadow:0 0 8px rgba(251,146,60,.8);animation:none"></div>
+          <div class="mpin" style="top:65%;right:30%;width:7px;height:7px;animation:none"></div>
+        </div>
+        <div class="map-ibar">
+          <div class="map-ic"><strong>14</strong>Punti servizio</div>
+          <div class="map-ic"><strong>2</strong>Aree VIP</div>
+          <div class="map-ic"><strong>~3 min</strong>Attesa media</div>
+          <div class="map-ic"><strong>Online</strong>Tutti attivi</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOR WHO -->
+<section class="section-forwho">
+  <div class="section-header fade-up">
+    <div class="eyebrow">Per chi è</div>
+    <h2 class="section-title">Pensato per eventi dove ogni minuto di coda costa ricavo.</h2>
+    <p class="section-body">Orlay Pay è adatto a contesti con alta densità di pubblico, più punti di servizio e domanda concentrata in finestre brevi.</p>
+  </div>
+  <div class="tags-grid">
+    <a href="#demo" class="tag-chip fade-up"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2l1.5 3 3.5.5-2.5 2.5.5 3.5L8 10l-3 1.5.5-3.5L3 5.5 6.5 5z"/></svg>Festival</a>
+    <a href="#demo" class="tag-chip fade-up d1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M5 8h6M8 5v6"/></svg>Concerti</a>
+    <a href="#demo" class="tag-chip fade-up d2"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M2 6h12M6 6v8"/></svg>Stadi e palazzetti</a>
+    <a href="#demo" class="tag-chip fade-up"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 5h12M2 8h12M5 11h6"/><rect x="1" y="2" width="14" height="12" rx="1"/></svg>Food court</a>
+    <a href="#demo" class="tag-chip fade-up d1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1L2 5v8h12V5L8 1z"/><path d="M6 13V9h4v4"/></svg>Hospitality</a>
+    <a href="#demo" class="tag-chip fade-up d2"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1l1.5 3 3.5.5-2.5 2.5.5 3.5L8 9l-3 1.5.5-3.5L3 4.5 6.5 4z"/></svg>Aree VIP</a>
+    <a href="#demo" class="tag-chip fade-up"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="10" height="8" rx="1"/><path d="M6 4V3h4v1M8 8h.01"/></svg>Merchandising</a>
+    <a href="#demo" class="tag-chip fade-up d1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M2 7h12M5 1v3M11 1v3"/></svg>Eventi corporate</a>
+  </div>
+</section>
+
+<!-- ANALYTICS -->
+<section class="section-analytics">
+  <div class="section-header fade-up">
+    <div class="eyebrow">Analytics e post-evento</div>
+    <h2 class="section-title">Il valore non finisce a fine serata.</h2>
+    <p class="section-body">Leggi cosa converte, cosa rallenta e dove si perde domanda. Usa i dati per migliorare pricing, staffing, layout e offerta del prossimo evento.</p>
+  </div>
+  <div class="analytics-cards">
+    <div class="analytics-card fade-up d1">
+      <div class="ac-ring-wrap"><svg class="ac-ring" viewBox="0 0 36 36"><circle class="ring-bg" cx="18" cy="18" r="15.9"/><circle class="ring-fill" cx="18" cy="18" r="15.9" data-pct="72"/></svg></div>
+      <div class="ac-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="12" width="3" height="6"/><rect x="7" y="8" width="3" height="10"/><rect x="12" y="4" width="3" height="14"/><rect x="17" y="2" width="3" height="16"/></svg></div>
+      <span class="ac-stat" data-from="0" data-to="34" data-prefix="+" data-suffix="%">+34%</span>
+      <h3>Performance per area</h3>
+      <p>Quali zone vendono e quali rallentano. Dati per area, fascia oraria e categoria prodotto.</p>
+    </div>
+    <div class="analytics-card fade-up d2">
+      <div class="ac-ring-wrap"><svg class="ac-ring" viewBox="0 0 36 36"><circle class="ring-bg" cx="18" cy="18" r="15.9"/><circle class="ring-fill" cx="18" cy="18" r="15.9" data-pct="90"/></svg></div>
+      <div class="ac-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="2,14 6,9 10,11 14,4 18,7"/><path d="M14 4h4v4"/></svg></div>
+      <span class="ac-stat" data-from="1" data-to="3.2" data-suffix="×">3.2×</span>
+      <h3>Picchi reali</h3>
+      <p>Quando la domanda cresce davvero, minuto per minuto, non solo la percezione.</p>
+    </div>
+    <div class="analytics-card fade-up d3">
+      <div class="ac-ring-wrap"><svg class="ac-ring" viewBox="0 0 36 36"><circle class="ring-bg" cx="18" cy="18" r="15.9"/><circle class="ring-fill" cx="18" cy="18" r="15.9" data-pct="65"/></svg></div>
+      <div class="ac-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="8"/><path d="M10 10l4-4M10 6v4"/></svg></div>
+      <span class="ac-stat" data-from="0" data-to="65" data-suffix="%">65%</span>
+      <h3>Mix prodotti</h3>
+      <p>Cosa viene scelto, cosa resta indietro. Ottimizza offerta e pricing evento per evento.</p>
+    </div>
+    <div class="analytics-card fade-up d4">
+      <div class="ac-ring-wrap"><svg class="ac-ring" viewBox="0 0 36 36"><circle class="ring-bg" cx="18" cy="18" r="15.9"/><circle class="ring-fill" cx="18" cy="18" r="15.9" data-pct="44"/></svg></div>
+      <div class="ac-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10h4l3-7 4 14 3-7h3"/></svg></div>
+      <span class="ac-stat" data-from="0" data-to="22" data-prefix="−" data-suffix="%">−22%</span>
+      <h3>Decisioni migliori</h3>
+      <p>Meno percezioni, più evidenze operative. Ogni evento alimenta il successivo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA + FORM -->
+<section class="section-cta" id="demo">
+  <div class="cta-inner">
+    <div class="cta-copy fade-up">
+      <div class="eyebrow">Prenota una demo</div>
+      <h2 class="section-title">Vuoi capire dove il tuo evento sta perdendo vendite?</h2>
+      <p class="section-body">Prenota una demo: analizziamo insieme flussi, punti bar, aree critiche e opportunità di ricavo.</p>
+      <div class="cta-feats">
+        <div class="cta-feat"><div class="cta-feat-ic"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6 5 9 10 3"/></svg></div>Analisi dei flussi e dei punti critici</div>
+        <div class="cta-feat"><div class="cta-feat-ic"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6 5 9 10 3"/></svg></div>Demo live della console organizzatore</div>
+        <div class="cta-feat"><div class="cta-feat-ic"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6 5 9 10 3"/></svg></div>Valutazione per il tuo specifico contesto</div>
+        <div class="cta-feat"><div class="cta-feat-ic"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6 5 9 10 3"/></svg></div>Nessun impegno, risposta entro 24 ore</div>
+      </div>
+    </div>
+    <div class="fade-up d2">
+      <div class="form-card">
+        <div class="form-ttl">Richiedi una demo</div>
+        <div class="form-sub">Ti ricontattiamo solo per valutare il progetto Orlay Pay.</div>
+        <div class="form-grid">
+          <div class="fg"><label class="flabel">Nome</label><input class="finput" type="text" placeholder="Il tuo nome"></div>
+          <div class="fg"><label class="flabel">Azienda / Venue</label><input class="finput" type="text" placeholder="Nome organizzazione"></div>
+          <div class="fg full"><label class="flabel">Tipo di evento</label>
+            <select class="fsel"><option value="" disabled selected>Seleziona un tipo</option><option>Festival</option><option>Concerto</option><option>Stadio / Palazzetto</option><option>Food Court</option><option>Hospitality / VIP</option><option>Evento corporate</option><option>Altro</option></select>
+          </div>
+          <div class="fg"><label class="flabel">Email</label><input class="finput" type="email" placeholder="nome@azienda.it"></div>
+          <div class="fg"><label class="flabel">Telefono</label><input class="finput" type="tel" placeholder="+39 000 000 0000"></div>
+          <div class="fg full"><label class="flabel">Messaggio (opzionale)</label><textarea class="ftxt" placeholder="Raccontaci il tuo evento..."></textarea></div>
+        </div>
+        <button class="fsub" onclick="handleSubmit(this)">Richiedi una demo →</button>
+        <div class="fpriv">Nessuno spam. Ti ricontattiamo solo per valutare insieme il tuo progetto.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">orlay<span>pay</span></div>
+  <div class="footer-copy">© 2026 Orlay Pay · Continuità di vendita per eventi live</div>
+</footer>
+
+<script>
+/* ── CURSOR + MAGNETIC TRAIL ── */
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx = -200, my = -200, rx = -200, ry = -200;
+const TRAIL_COUNT = 8;
+const trails = Array.from({length: TRAIL_COUNT}, (_, i) => {
+  const d = document.createElement('div');
+  d.className = 'trail-dot';
+  d.style.cssText = `opacity:${0.5 - i*0.055};width:${8 - i*0.7}px;height:${8 - i*0.7}px;transition-delay:${i * 25}ms`;
+  document.body.appendChild(d);
+  return { el: d, x: -200, y: -200 };
+});
+
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+document.querySelectorAll('a,button,.tag-chip,.problem-card,.analytics-card,.tl-card,.screen-visual,input,textarea,select').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('chov'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('chov'));
+});
+document.addEventListener('mousedown', () => document.body.classList.add('cclk'));
+document.addEventListener('mouseup', () => document.body.classList.remove('cclk'));
+
+(function tickCursor() {
+  cur.style.left = mx + 'px'; cur.style.top = my + 'px';
+  rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  let px = mx, py = my;
+  trails.forEach((t, i) => {
+    t.x += (px - t.x) * 0.35;
+    t.y += (py - t.y) * 0.35;
+    t.el.style.left = t.x + 'px'; t.el.style.top = t.y + 'px';
+    px = t.x; py = t.y;
+  });
+  requestAnimationFrame(tickCursor);
+})();
+
+/* ── PARTICLE SYSTEM ── */
+const canvas = document.getElementById('pts');
+const ctx = canvas.getContext('2d');
+function sizeCanvas() { canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight; }
+sizeCanvas(); window.addEventListener('resize', sizeCanvas);
+const pts = Array.from({length: 55}, () => ({
+  x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+  r: Math.random() * 1.4 + 0.3,
+  vx: (Math.random() - 0.5) * 0.32, vy: (Math.random() - 0.5) * 0.32,
+  a: Math.random() * 0.45 + 0.1
+}));
+(function drawPts() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  pts.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(41,171,226,${p.a})`; ctx.fill();
+  });
+  for (let i = 0; i < pts.length; i++) for (let j = i+1; j < pts.length; j++) {
+    const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y, d = Math.sqrt(dx*dx+dy*dy);
+    if (d < 115) {
+      ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y);
+      ctx.strokeStyle = `rgba(41,171,226,${0.11*(1-d/115)})`; ctx.lineWidth = 0.5; ctx.stroke();
+    }
+  }
+  requestAnimationFrame(drawPts);
+})();
+
+/* ── DASHBOARD: ANIMATED BAR CHART ── */
+function buildBarChart() {
+  const wrap = document.getElementById('barChart');
+  if (!wrap) return;
+  const hours = ['18','19','20','21','22','23'];
+  const vals  = [0.35, 0.55, 0.80, 1.0, 0.75, 0.45];
+  const green = [false, false, false, true, false, false];
+  wrap.innerHTML = hours.map((h, i) => {
+    const ht = Math.round(vals[i] * 40);
+    const cls = green[i] ? 'mock-bar green' : 'mock-bar';
+    return `<div class="mock-bar-col">
+      <div class="${cls}" style="height:${ht}px;animation-delay:${i*0.08}s"></div>
+      <div class="mock-bar-tick">${h}</div>
+    </div>`;
+  }).join('');
+}
+buildBarChart();
+
+/* ── 3D TILT ON PROBLEM CARDS ── */
+document.querySelectorAll('.problem-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    const cx = (e.clientX - r.left) / r.width  - 0.5;
+    const cy = (e.clientY - r.top)  / r.height - 0.5;
+    card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+    card.style.setProperty('--my', ((e.clientY - r.top)  / r.height * 100) + '%');
+    card.style.transform = `translateY(-8px) rotateY(${cx * 10}deg) rotateX(${-cy * 8}deg) scale(1.01)`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+  });
+});
+
+/* ── SCROLL OBSERVER ── */
+const obs = new IntersectionObserver(entries => entries.forEach(e => {
+  if (e.isIntersecting) e.target.classList.add('visible');
+}), { threshold: 0.1 });
+document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+
+/* ── ANIMATED COUNTER (hero dashboard) ── */
+const ctrEl = document.getElementById('ctr');
+const ctrObs = new IntersectionObserver(entries => entries.forEach(e => {
+  if (e.isIntersecting) {
+    let s = 0, target = 3000, dur = 2200;
+    const step = ts => {
+      if (!s) s = ts;
+      const p = Math.min((ts-s)/dur, 1), ease = 1 - Math.pow(1-p, 3);
+      ctrEl.textContent = Math.floor(ease * target).toLocaleString('it-IT');
+      if (p < 1) requestAnimationFrame(step); else ctrEl.textContent = '3.000';
+    };
+    requestAnimationFrame(step); ctrObs.unobserve(e.target);
+  }
+}), { threshold: 0.5 });
+ctrObs.observe(ctrEl);
+
+/* ── ANALYTICS: COUNT-UP + RING ANIMATION ── */
+const ringCircumference = 2 * Math.PI * 15.9;
+function animateStat(el) {
+  const from   = parseFloat(el.dataset.from || '0');
+  const to     = parseFloat(el.dataset.to   || '0');
+  const prefix = el.dataset.prefix || '';
+  const suffix = el.dataset.suffix || '';
+  const isFloat = String(to).includes('.');
+  const dur = 1600, start = performance.now();
+  function step(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    const val = from + (to - from) * ease;
+    el.textContent = prefix + (isFloat ? val.toFixed(1) : Math.round(val)) + suffix;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function animateRing(circle) {
+  const pct = parseFloat(circle.dataset.pct || '0');
+  const offset = ringCircumference * (1 - pct / 100);
+  setTimeout(() => { circle.style.strokeDasharray = `${ringCircumference} ${ringCircumference}`; circle.style.strokeDashoffset = offset; }, 200);
+}
+const acObs = new IntersectionObserver(entries => entries.forEach(e => {
+  if (!e.isIntersecting) return;
+  const card = e.target;
+  const stat = card.querySelector('.ac-stat');
+  const ring = card.querySelector('.ring-fill');
+  if (stat && stat.dataset.to !== undefined) animateStat(stat);
+  if (ring) animateRing(ring);
+  acObs.unobserve(card);
+}), { threshold: 0.4 });
+document.querySelectorAll('.analytics-card').forEach(c => acObs.observe(c));
+
+/* ── FORM ── */
+function handleSubmit(btn) {
+  btn.textContent = 'Inviato ✓';
+  btn.style.background = '#16a34a';
+  btn.style.boxShadow = '0 4px 16px rgba(22,163,74,.3)';
+  btn.disabled = true;
+}
+</script>
+</body>
+</html>
